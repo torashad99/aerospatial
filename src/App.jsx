@@ -1,121 +1,102 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { SCENARIOS } from './data/scenarios.js';
+import AirspaceScene from './components/AirspaceScene.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [cameraMode, setCameraMode]         = useState('3d');
+  const [activeScenario, setActiveScenario] = useState(0);
+  const [altitudeRange, setAltitudeRange]   = useState([0, 15]); // units: 0=SFC, 15=FL150
+  const [resetKey, setResetKey]             = useState(0);
+
+  const aircraftData = SCENARIOS[activeScenario].aircraft;
+
+  function handleScenarioChange(index) {
+    setActiveScenario(index);
+    setAltitudeRange([0, 15]);
+    setResetKey(k => k + 1); // remount AirspaceScene → resets Three.js elapsed time
+  }
+
+  function handleResetView() {
+    setResetKey(k => k + 1);
+  }
+
+  function flLabel(units) {
+    return `FL${String(Math.round(units * 10)).padStart(3, '0')}`;
+  }
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      {/* Advisory Banner — always visible, regulatory positioning */}
+      <div className="advisory-banner">
+        <span>⚠</span>
+        ADVISORY DISPLAY — Supplemental visualization only. All separation decisions reference primary radar.
+      </div>
 
-      <div className="ticks"></div>
+      {/* 3D scene fills viewport below banner */}
+      <div style={{ position: 'fixed', inset: 0, top: 32 }}>
+        <AirspaceScene
+          key={resetKey}
+          aircraftData={aircraftData}
+          cameraMode={cameraMode}
+          altitudeRange={altitudeRange}
+        />
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Controls Panel — top left */}
+      <div className="controls-panel">
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button
+            className="toggle-btn"
+            onClick={() => setCameraMode(m => m === '3d' ? '2d' : '3d')}
+          >
+            {cameraMode === '3d' ? '3D Spatial View' : '2D Radar View'}
+          </button>
+          <button className="reset-btn" onClick={handleResetView}>
+            Reset View
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      {/* Altitude Filter — bottom right */}
+      <div className="altitude-panel glass-card">
+        <h3>Altitude Filter</h3>
+        <div className="altitude-label">{flLabel(altitudeRange[0])} — {flLabel(altitudeRange[1])}</div>
+        <div className="range-wrapper">
+          <div className="range-track-bg" />
+          <input
+            type="range"
+            min={0} max={15} step={0.5}
+            value={altitudeRange[0]}
+            onChange={e => {
+              const v = parseFloat(e.target.value);
+              setAltitudeRange(r => [Math.min(v, r[1] - 0.5), r[1]]);
+            }}
+          />
+          <input
+            type="range"
+            min={0} max={15} step={0.5}
+            value={altitudeRange[1]}
+            onChange={e => {
+              const v = parseFloat(e.target.value);
+              setAltitudeRange(r => [r[0], Math.max(v, r[0] + 0.5)]);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Scenario Panel — bottom left */}
+      <div className="scenario-panel glass-card">
+        <h3>Scenarios</h3>
+        {SCENARIOS.map((scenario, i) => (
+          <button
+            key={i}
+            className={`scenario-btn${activeScenario === i ? ' active' : ''}`}
+            onClick={() => handleScenarioChange(i)}
+          >
+            {scenario.name}
+          </button>
+        ))}
+      </div>
     </>
-  )
+  );
 }
-
-export default App
