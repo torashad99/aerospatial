@@ -1,4 +1,5 @@
 import { Html } from '@react-three/drei';
+import * as THREE from 'three';
 import { TYPE_COLORS } from '../utils.js';
 
 export default function Aircraft({ data, currentPosition, altitudeRange, isConflict }) {
@@ -10,17 +11,18 @@ export default function Aircraft({ data, currentPosition, altitudeRange, isConfl
   const opacity   = isFiltered ? 0.1 : 1;
 
   // Orient cone tip in heading direction.
-  // Three.js cone default: tip points up (+Y).
-  // Rotate +90° around X → tip points in +Z (north when heading=0).
-  // Rotate +heading around Y → tip sweeps to (sin(h), 0, cos(h)), matching utils.js.
-  const rotX = Math.PI / 2;
-  const rotY = (data.heading * Math.PI) / 180;
+  // Uses Euler order 'YXZ' so the matrix is Ry(h) * Rx(π/2):
+  //   1. Rx(π/2): tip from +Y → +Z (north)
+  //   2. Ry(h):   tip sweeps to (sin(h), 0, cos(h)) — matches utils.js leader line convention.
+  // Default 'XYZ' order would remap local-Y to world-Z after the X rotation (gimbal),
+  // causing the heading sweep to rotate in the wrong plane.
+  const headingRad = (data.heading * Math.PI) / 180;
 
   const flDisplay = `FL${String(Math.round(currentPosition[1] * 10)).padStart(3, '0')}`;
 
   return (
     <group position={currentPosition}>
-      <mesh rotation={[rotX, rotY, 0]}>
+      <mesh rotation={new THREE.Euler(Math.PI / 2, headingRad, 0, 'YXZ')}>
         <coneGeometry args={[0.3, 1, 8]} />
         <meshStandardMaterial
           color={color}
