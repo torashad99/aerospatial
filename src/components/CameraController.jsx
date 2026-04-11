@@ -13,9 +13,18 @@ export default function CameraController({ cameraMode }) {
   const controlsRef    = useRef();
   const targetPosRef   = useRef(CAMERA_3D.clone());
   const isTransitioning = useRef(false);
+  // Remembers where the user was in 3D before switching to 2D
+  const savedCam3DPos  = useRef(CAMERA_3D.clone());
 
   useEffect(() => {
-    targetPosRef.current = (cameraMode === '3d' ? CAMERA_3D : CAMERA_2D).clone();
+    if (cameraMode === '2d') {
+      // Save current 3D position before leaving so we can return to it
+      savedCam3DPos.current = camera.position.clone();
+      targetPosRef.current = CAMERA_2D.clone();
+    } else {
+      // Return to wherever the user was in 3D, not always the default
+      targetPosRef.current = savedCam3DPos.current.clone();
+    }
     isTransitioning.current = true;
     // Reset controls target to scene center at transition start
     if (controlsRef.current) {
