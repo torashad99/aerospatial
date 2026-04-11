@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 
-export default function ProximityAlert({ midpoint, visible }) {
+export default function ProximityAlert({ midpoint }) {
   const meshRef = useRef();
 
   useFrame(({ clock }) => {
@@ -10,8 +10,6 @@ export default function ProximityAlert({ midpoint, visible }) {
     meshRef.current.material.opacity =
       0.1 + 0.1 * Math.sin(clock.elapsedTime * 2);
   });
-
-  if (!visible) return null;
 
   return (
     <mesh ref={meshRef} position={midpoint}>

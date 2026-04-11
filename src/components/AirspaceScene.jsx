@@ -62,8 +62,8 @@ function Scene({ aircraftData, cameraMode, altitudeRange }) {
         />
       ))}
 
-      {conflictPairs.map((pair, i) => (
-        <ProximityAlert key={i} midpoint={pair.midpoint} visible={cameraMode === '3d'} />
+      {cameraMode === '3d' && conflictPairs.map((pair, i) => (
+        <ProximityAlert key={i} midpoint={pair.midpoint} />
       ))}
 
       <AltitudeSlice altitudeRange={altitudeRange} visible={cameraMode === '3d'} />
