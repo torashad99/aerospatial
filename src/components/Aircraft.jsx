@@ -11,10 +11,9 @@ export default function Aircraft({ data, currentPosition, altitudeRange, isConfl
 
   // Orient cone tip in heading direction.
   // Three.js cone default: tip points up (+Y).
-  // Rotate -90° around X → tip points in +Z (north when heading=0).
-  // Rotate +heading around Y → tip points in heading direction.
-  // (Positive Y rotation takes +Z toward +X, matching sin/cos convention in utils.js)
-  const rotX = -Math.PI / 2;
+  // Rotate +90° around X → tip points in +Z (north when heading=0).
+  // Rotate +heading around Y → tip sweeps to (sin(h), 0, cos(h)), matching utils.js.
+  const rotX = Math.PI / 2;
   const rotY = (data.heading * Math.PI) / 180;
 
   const flDisplay = `FL${String(Math.round(currentPosition[1] * 10)).padStart(3, '0')}`;
