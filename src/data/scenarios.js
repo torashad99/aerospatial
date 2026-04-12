@@ -32,4 +32,15 @@ export const SCENARIOS = [
       { id: "FDX107",  position: [-8, 10, -12],   heading: 170, speed: 300, climbRate: -300, altitude: 10000, type: "enroute" },
     ],
   },
+  {
+    name: "Near-miss — conflict then clear",
+    aircraft: [
+      { id: "AWE417", position: [-13.74, 7,   -7.03], heading: 60,  speed: 280, climbRate: 0,    altitude: 7000,  type: "enroute" },
+      { id: "NKS632", position: [13.74,  7.3, -9.03], heading: 300, speed: 280, climbRate: 0,    altitude: 7300,  type: "enroute" },
+      { id: "DAL519", position: [-8,     4,   -15],   heading: 180, speed: 200, climbRate: -700, altitude: 4000,  type: "arrival" },
+      { id: "UAL223", position: [10,     11,   5],    heading: 270, speed: 310, climbRate: 0,    altitude: 11000, type: "enroute" },
+      { id: "N482SP", position: [3,      2,    8],    heading: 90,  speed: 130, climbRate: 600,  altitude: 2000,  type: "departure" },
+      { id: "JBU819", position: [-5,     9,   12],    heading: 200, speed: 240, climbRate: -400, altitude: 9000,  type: "arrival" },
+    ],
+  },
 ];

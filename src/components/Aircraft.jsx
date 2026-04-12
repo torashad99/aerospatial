@@ -2,7 +2,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { TYPE_COLORS } from '../utils.js';
 
-export default function Aircraft({ data, currentPosition, altitudeRange, isConflict }) {
+export default function Aircraft({ data, currentPosition, altitudeRange, isConflict, isSelected, onSelect }) {
   const [altMin, altMax] = altitudeRange;
   const isFiltered = currentPosition[1] < altMin || currentPosition[1] > altMax;
 
@@ -22,7 +22,10 @@ export default function Aircraft({ data, currentPosition, altitudeRange, isConfl
 
   return (
     <group position={currentPosition}>
-      <mesh rotation={new THREE.Euler(Math.PI / 2, headingRad, 0, 'YXZ')}>
+      <mesh
+        rotation={new THREE.Euler(Math.PI / 2, headingRad, 0, 'YXZ')}
+        onClick={(e) => { e.stopPropagation(); onSelect(); }}
+      >
         <coneGeometry args={[0.3, 1, 8]} />
         <meshStandardMaterial
           color={color}
@@ -37,7 +40,7 @@ export default function Aircraft({ data, currentPosition, altitudeRange, isConfl
         distanceFactor={20}
         style={{ opacity: isFiltered ? 0.1 : 1, transition: 'opacity 0.3s' }}
       >
-        <div className={`data-block${isConflict ? ' conflict' : ''}`}>
+        <div className={`data-block${isConflict ? ' conflict' : ''}${isSelected ? ' selected' : ''}`}>
           <div className="callsign">{data.id}</div>
           <div className="details">{flDisplay} {data.speed}kts</div>
         </div>

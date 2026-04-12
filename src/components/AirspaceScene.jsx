@@ -1,4 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import { useRef, useState, useEffect } from 'react';
 import { computePosition } from '../utils.js';
 import { useConflictDetection } from '../hooks/useConflictDetection.js';
@@ -8,7 +9,7 @@ import ProximityAlert from './ProximityAlert.jsx';
 import AltitudeSlice from './AltitudeSlice.jsx';
 import CameraController from './CameraController.jsx';
 
-function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
+function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed, selectedAircraftId, onSelectAircraft }) {
   const simTimeRef   = useRef(0);
   const lastFrameRef = useRef(null);
   const lastTickRef  = useRef(0);
@@ -41,11 +42,27 @@ function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
     aircraftData, currentPositions, altitudeRange
   );
 
+  const focusTarget = selectedAircraftId
+    ? currentPositions[aircraftData.findIndex(a => a.id === selectedAircraftId)] || null
+    : null;
+
   return (
     <>
       <ambientLight intensity={0.3} />
       <directionalLight position={[10, 20, 10]} intensity={0.8} />
       <gridHelper args={[60, 60, '#1a1a3a', '#1a1a3a']} />
+
+      {/* Compass labels at grid edges */}
+      {[
+        { label: 'N', position: [0, 0, 33] },
+        { label: 'S', position: [0, 0, -33] },
+        { label: 'E', position: [33, 0, 0] },
+        { label: 'W', position: [-33, 0, 0] },
+      ].map(({ label, position }) => (
+        <Html key={label} position={position} center>
+          <div className="compass-label">{label}</div>
+        </Html>
+      ))}
 
       {aircraftData.map((aircraft, i) => (
         <Aircraft
@@ -54,6 +71,8 @@ function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
           currentPosition={currentPositions[i]}
           altitudeRange={altitudeRange}
           isConflict={conflictIds.has(aircraft.id)}
+          isSelected={aircraft.id === selectedAircraftId}
+          onSelect={() => onSelectAircraft(aircraft.id)}
         />
       ))}
 
@@ -73,15 +92,15 @@ function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
 
       <AltitudeSlice altitudeRange={altitudeRange} visible={cameraMode === '3d'} />
 
-      <CameraController cameraMode={cameraMode} />
+      <CameraController cameraMode={cameraMode} focusTarget={focusTarget} />
     </>
   );
 }
 
-export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
+export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange, playbackSpeed, selectedAircraftId, onSelectAircraft }) {
   return (
     <Canvas
-      style={{ background: '#0a0a1a' }}
+      style={{ background: '#121228' }}
       camera={{ position: [40, 30, 40], fov: 60 }}
     >
       <Scene
@@ -89,6 +108,8 @@ export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange,
         cameraMode={cameraMode}
         altitudeRange={altitudeRange}
         playbackSpeed={playbackSpeed}
+        selectedAircraftId={selectedAircraftId}
+        onSelectAircraft={onSelectAircraft}
       />
     </Canvas>
   );

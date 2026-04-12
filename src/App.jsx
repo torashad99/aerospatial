@@ -9,6 +9,7 @@ export default function App() {
   const [resetKey, setResetKey]             = useState(0);
   const [playbackSpeed, setPlaybackSpeed]   = useState(1);
   const [colorKeyOpen, setColorKeyOpen]     = useState(false);
+  const [selectedAircraftId, setSelectedAircraftId] = useState(null);
 
   const aircraftData = SCENARIOS[activeScenario].aircraft;
 
@@ -16,11 +17,13 @@ export default function App() {
     setActiveScenario(index);
     setAltitudeRange([0, 15]);
     setPlaybackSpeed(1);
+    setSelectedAircraftId(null);
     setResetKey(k => k + 1); // remount AirspaceScene → resets Three.js elapsed time
   }
 
   function handleResetView() {
     setPlaybackSpeed(1);
+    setSelectedAircraftId(null);
     setResetKey(k => k + 1);
   }
 
@@ -44,6 +47,8 @@ export default function App() {
           cameraMode={cameraMode}
           altitudeRange={altitudeRange}
           playbackSpeed={playbackSpeed}
+          selectedAircraftId={selectedAircraftId}
+          onSelectAircraft={setSelectedAircraftId}
         />
       </div>
 
@@ -59,6 +64,11 @@ export default function App() {
           <button className="reset-btn" onClick={handleResetView}>
             Reset View
           </button>
+          {selectedAircraftId && (
+            <button className="recenter-btn" onClick={() => setSelectedAircraftId(null)}>
+              Recenter
+            </button>
+          )}
         </div>
       </div>
 

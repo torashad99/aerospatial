@@ -8,7 +8,7 @@ const CAMERA_2D = new THREE.Vector3(0, 100, 0);
 const LERP_SPEED = 3;
 const ARRIVE_THRESHOLD = 0.1; // units — stop overriding controls when this close
 
-export default function CameraController({ cameraMode }) {
+export default function CameraController({ cameraMode, focusTarget }) {
   const { camera } = useThree();
   const controlsRef    = useRef();
   const targetPosRef   = useRef(CAMERA_3D.clone());
@@ -34,19 +34,34 @@ export default function CameraController({ cameraMode }) {
   }, [cameraMode]);
 
   useFrame((_, delta) => {
-    if (!isTransitioning.current) return;
+    if (isTransitioning.current) {
+      camera.position.lerp(targetPosRef.current, Math.min(1, LERP_SPEED * delta));
+      camera.lookAt(0, 0, 0);
 
-    camera.position.lerp(targetPosRef.current, Math.min(1, LERP_SPEED * delta));
-    camera.lookAt(0, 0, 0);
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
 
-    if (controlsRef.current) {
-      controlsRef.current.target.set(0, 0, 0);
-      controlsRef.current.update();
+      // Stop overriding controls once camera arrives at target
+      if (camera.position.distanceTo(targetPosRef.current) < ARRIVE_THRESHOLD) {
+        isTransitioning.current = false;
+      }
+      return;
     }
 
-    // Stop overriding controls once camera arrives at target
-    if (camera.position.distanceTo(targetPosRef.current) < ARRIVE_THRESHOLD) {
-      isTransitioning.current = false;
+    // Focus target tracking — orbit around selected aircraft or return to origin
+    if (controlsRef.current) {
+      if (focusTarget) {
+        controlsRef.current.target.lerp(
+          new THREE.Vector3(focusTarget[0], focusTarget[1], focusTarget[2]),
+          Math.min(1, 5 * delta)
+        );
+        controlsRef.current.update();
+      } else if (controlsRef.current.target.lengthSq() > 0.01) {
+        controlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), Math.min(1, 5 * delta));
+        controlsRef.current.update();
+      }
     }
   });
 
