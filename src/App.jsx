@@ -7,16 +7,20 @@ export default function App() {
   const [activeScenario, setActiveScenario] = useState(0);
   const [altitudeRange, setAltitudeRange]   = useState([0, 15]); // units: 0=SFC, 15=FL150
   const [resetKey, setResetKey]             = useState(0);
+  const [playbackSpeed, setPlaybackSpeed]   = useState(1);
+  const [colorKeyOpen, setColorKeyOpen]     = useState(false);
 
   const aircraftData = SCENARIOS[activeScenario].aircraft;
 
   function handleScenarioChange(index) {
     setActiveScenario(index);
     setAltitudeRange([0, 15]);
+    setPlaybackSpeed(1);
     setResetKey(k => k + 1); // remount AirspaceScene → resets Three.js elapsed time
   }
 
   function handleResetView() {
+    setPlaybackSpeed(1);
     setResetKey(k => k + 1);
   }
 
@@ -39,6 +43,7 @@ export default function App() {
           aircraftData={aircraftData}
           cameraMode={cameraMode}
           altitudeRange={altitudeRange}
+          playbackSpeed={playbackSpeed}
         />
       </div>
 
@@ -54,6 +59,47 @@ export default function App() {
           <button className="reset-btn" onClick={handleResetView}>
             Reset View
           </button>
+        </div>
+      </div>
+
+      {/* Playback Controls — top right */}
+      <div className="playback-panel glass-card">
+        <button
+          className={`playback-btn${playbackSpeed === -2 ? ' active' : ''}`}
+          onClick={() => setPlaybackSpeed(-2)}
+          title="Rewind 2x"
+        >&#9194;</button>
+        <button
+          className="playback-btn play-pause"
+          onClick={() => setPlaybackSpeed(s => s === 0 ? 1 : 0)}
+          title={playbackSpeed === 0 ? 'Play' : 'Pause'}
+        >{playbackSpeed === 0 ? '\u25B6' : '\u23F8'}</button>
+        <button
+          className={`playback-btn${playbackSpeed === 2 ? ' active' : ''}`}
+          onClick={() => setPlaybackSpeed(2)}
+          title="Fast forward 2x"
+        >&#9193;</button>
+      </div>
+
+      {/* Color Key Drawer — right edge */}
+      <div className={`color-key-drawer glass-card${colorKeyOpen ? ' open' : ''}`}>
+        <button
+          className="color-key-tab"
+          onClick={() => setColorKeyOpen(o => !o)}
+        >{colorKeyOpen ? '\u203A' : '\u2039'} Key</button>
+        <div className="color-key-body">
+          <h3>Aircraft Types</h3>
+          {[
+            ['Arrival',   '#4488ff'],
+            ['Departure', '#44ff88'],
+            ['Enroute',   '#ffaa44'],
+            ['Conflict',  '#ff4444'],
+          ].map(([label, color]) => (
+            <div className="color-key-entry" key={label}>
+              <span className="color-dot" style={{ background: color }} />
+              <span>{label}</span>
+            </div>
+          ))}
         </div>
       </div>
 

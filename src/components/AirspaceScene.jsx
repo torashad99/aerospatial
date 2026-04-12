@@ -8,8 +8,9 @@ import ProximityAlert from './ProximityAlert.jsx';
 import AltitudeSlice from './AltitudeSlice.jsx';
 import CameraController from './CameraController.jsx';
 
-function Scene({ aircraftData, cameraMode, altitudeRange }) {
-  const startTimeRef = useRef(null);
+function Scene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
+  const simTimeRef   = useRef(0);
+  const lastFrameRef = useRef(null);
   const lastTickRef  = useRef(0);
   const [currentPositions, setCurrentPositions] = useState(
     () => aircraftData.map(a => [...a.position])
@@ -18,18 +19,22 @@ function Scene({ aircraftData, cameraMode, altitudeRange }) {
   // Reset positions when scenario changes (aircraftData identity changes)
   useEffect(() => {
     setCurrentPositions(aircraftData.map(a => [...a.position]));
-    startTimeRef.current = null;
+    simTimeRef.current   = 0;
+    lastFrameRef.current = null;
   }, [aircraftData]);
 
   useFrame(({ clock }) => {
-    if (startTimeRef.current === null) startTimeRef.current = clock.elapsedTime;
-    const elapsed = clock.elapsedTime - startTimeRef.current;
+    // Accumulate simulated time at full frame rate
+    if (lastFrameRef.current === null) lastFrameRef.current = clock.elapsedTime;
+    const delta = clock.elapsedTime - lastFrameRef.current;
+    lastFrameRef.current = clock.elapsedTime;
+    simTimeRef.current += delta * playbackSpeed;
 
     // Throttle React state updates to ~20fps to balance smoothness and React overhead
     if (clock.elapsedTime - lastTickRef.current < 0.05) return;
     lastTickRef.current = clock.elapsedTime;
 
-    setCurrentPositions(aircraftData.map(a => computePosition(a, elapsed)));
+    setCurrentPositions(aircraftData.map(a => computePosition(a, simTimeRef.current)));
   });
 
   const { conflictIds, conflictPairs } = useConflictDetection(
@@ -73,7 +78,7 @@ function Scene({ aircraftData, cameraMode, altitudeRange }) {
   );
 }
 
-export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange }) {
+export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange, playbackSpeed }) {
   return (
     <Canvas
       style={{ background: '#0a0a1a' }}
@@ -83,6 +88,7 @@ export default function AirspaceScene({ aircraftData, cameraMode, altitudeRange 
         aircraftData={aircraftData}
         cameraMode={cameraMode}
         altitudeRange={altitudeRange}
+        playbackSpeed={playbackSpeed}
       />
     </Canvas>
   );
