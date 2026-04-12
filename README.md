@@ -2,6 +2,10 @@
 
 **Built by Mohammed Rashad & Anmol Aggarwal**
 
+[![AeroSpatial Preview](../aerospatial_picture.png)](https://venerable-pastelito-7e0da5.netlify.app/)
+
+*[Try Me](https://venerable-pastelito-7e0da5.netlify.app/)*
+
 ---
 
 ## The Problem
